@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     bybit_api_key: Optional[str] = None
     bybit_api_secret: Optional[str] = None
     llm_model_name: str = "gpt-4o"
+    llm_provider: str = "openai"
+    llm_system_prompt: Optional[str] = None
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
