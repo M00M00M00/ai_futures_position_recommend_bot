@@ -10,10 +10,10 @@ from app.signal_logic import sanitize_signal_response
 class LLMClient:
     """Thin wrapper around configured LLM provider."""
 
-    def __init__(self, settings: Settings):
+    def __init__(self, settings: Settings, override_model: Optional[str] = None):
         self.settings = settings
         self.provider = settings.llm_provider.lower()
-        self.model = settings.llm_model_name
+        self.model = override_model or settings.llm_model_name
         self.system_prompt = settings.llm_system_prompt
         self.confidence_threshold = settings.confidence_threshold
 
@@ -76,3 +76,6 @@ class LLMClient:
 
         raw["confidence_threshold"] = self.confidence_threshold
         return sanitize_signal_response(raw)
+
+    def set_model(self, model_name: str) -> None:
+        self.model = model_name

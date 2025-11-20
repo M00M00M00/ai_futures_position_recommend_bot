@@ -57,6 +57,12 @@ class FakeExchange:
 
 
 class FakeLLM:
+    def __init__(self):
+        self.model = "fake-model"
+
+    def set_model(self, model_name: str):
+        self.model = model_name
+
     def generate_signal(self, payload):
         return {
             "decision": "LONG",

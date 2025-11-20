@@ -43,6 +43,7 @@ def get_llm_client(settings: Settings = Depends(get_settings)) -> LLMClient:
 class SignalRequest(BaseModel):
     symbol: str = Field(..., description="Trading pair, e.g., ETH/USDT:USDT")
     sl_percentage: float = Field(..., gt=0, description="Fixed stop loss percent, e.g., 1.0 for 1%")
+    llm_model_name: Optional[str] = Field(None, description="Optional override for LLM model")
 
 
 class SignalResponse(BaseModel):
@@ -86,6 +87,12 @@ def generate_signal(
         "order_book": market_data["order_book"],
         "derivatives": market_data["derivatives"],
     }
+
+    if body.llm_model_name:
+        try:
+            llm.set_model(body.llm_model_name)
+        except Exception:
+            pass
 
     try:
         sanitized = llm.generate_signal(llm_input)

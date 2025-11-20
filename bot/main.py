@@ -14,6 +14,7 @@ API_BASE = os.getenv("API_BASE_URL", "http://localhost:8000")
 DEFAULT_SYMBOL = os.getenv("BYBIT_TEST_SYMBOL", "ETH/USDT:USDT")
 DEFAULT_SL = float(os.getenv("DEFAULT_SL_PCT", "1.0"))
 USDT_SUFFIX = os.getenv("PERP_SUFFIX", "USDT")
+MODEL_CHOICES = ["gpt-5.1", "gpt-5-mini", "gpt-5-nano"]
 
 
 def normalize_symbol(raw: str) -> str:
@@ -79,14 +80,21 @@ def build_embed(signal: dict, symbol: str, sl_percentage: float) -> Embed:
 @app_commands.describe(
     symbol="Trading pair, e.g., ETH/USDT:USDT",
     sl="Stop loss percent (e.g., 1.0 for 1%)",
+    model="LLM model: gpt-5.1 / gpt-5-mini / gpt-5-nano (default: gpt-5-mini)",
 )
-async def position(interaction, symbol: str = DEFAULT_SYMBOL, sl: float = DEFAULT_SL):
+@app_commands.choices(
+    model=[app_commands.Choice(name=m, value=m) for m in MODEL_CHOICES]
+)
+async def position(interaction, symbol: str = DEFAULT_SYMBOL, sl: float = DEFAULT_SL, model: Optional[app_commands.Choice[str]] = None):
     await interaction.response.defer(thinking=True)
     normalized_symbol = normalize_symbol(symbol)
     url = f"{API_BASE}/signal"
+    payload = {"symbol": normalized_symbol, "sl_percentage": sl}
+    if model:
+        payload["llm_model_name"] = model.value
     async with httpx.AsyncClient(timeout=60) as client:
         try:
-            resp = await client.post(url, json={"symbol": normalized_symbol, "sl_percentage": sl})
+            resp = await client.post(url, json=payload)
             resp.raise_for_status()
         except Exception as exc:
             await interaction.followup.send(f"Failed to fetch signal: {exc}")
