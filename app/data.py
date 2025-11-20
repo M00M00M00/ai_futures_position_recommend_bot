@@ -22,7 +22,7 @@ class TimeframeConfig:
 TIMEFRAME_CONFIG: dict[TimeframeKey, TimeframeConfig] = {
     # Fetch more than we expose so long lookbacks (e.g., SMA99) remain valid.
     "15m": TimeframeConfig(fetch_limit=130, expose_limit=50),
-    "1h": TimeframeConfig(fetch_limit=40, expose_limit=20),
+    "1h": TimeframeConfig(fetch_limit=130, expose_limit=20),
 }
 
 

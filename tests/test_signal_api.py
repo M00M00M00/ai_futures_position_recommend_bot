@@ -27,7 +27,7 @@ class FakeExchange:
                 100 + idx,
                 200.0,
             ]
-            for idx in range(40)
+            for idx in range(130)
         ]
         self.order_book = {
             "bids": [[129.6, 10.0], [129.0, 5.0]],

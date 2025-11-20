@@ -48,7 +48,7 @@ class FakeExchange:
             ]
             for idx in range(130)
         ]
-        # 1h series 40 points; 100..139 prices
+        # 1h series 130 points; 100..229 prices
         self.ohlcv_1h = [
             [
                 (base_ts + pd.Timedelta(hours=idx)).value // 10**6,
@@ -58,7 +58,7 @@ class FakeExchange:
                 100 + idx,
                 200.0,
             ]
-            for idx in range(40)
+            for idx in range(130)
         ]
 
         self.order_book = {
@@ -104,7 +104,7 @@ def test_fetch_market_data_shapes_clusters_and_calculates_depth_and_derivatives(
 
     tf1h = result["timeframes"]["1h"]
     assert len(tf1h["ohlcv"]) == 20
-    assert tf1h["ohlcv"][-1]["close"] == 139.0
+    assert tf1h["ohlcv"][-1]["close"] == 229.0
 
     depth = result["order_book"]
     assert depth["bid_volume"] == 10.0  # only 129.6 within 0.5% window of 130
