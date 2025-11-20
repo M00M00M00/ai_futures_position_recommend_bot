@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     llm_model_name: str = "gpt-4o"
     llm_provider: str = "openai"
     llm_system_prompt: Optional[str] = None
+    confidence_threshold: float = 70.0
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

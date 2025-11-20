@@ -15,6 +15,7 @@ class LLMClient:
         self.provider = settings.llm_provider.lower()
         self.model = settings.llm_model_name
         self.system_prompt = settings.llm_system_prompt
+        self.confidence_threshold = settings.confidence_threshold
 
     def _openai_generate(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         from openai import OpenAI  # lazy import to avoid import cost until used
@@ -65,4 +66,5 @@ class LLMClient:
         else:
             raise ValueError(f"Unsupported llm_provider: {self.provider}")
 
+        raw["confidence_threshold"] = self.confidence_threshold
         return sanitize_signal_response(raw)
