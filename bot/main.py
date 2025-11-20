@@ -1,9 +1,8 @@
-import asyncio
 import os
 from typing import Optional
 
 import httpx
-from discord import Color, Embed, Intents
+from discord import Color, Embed, Intents, app_commands
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -63,27 +62,36 @@ def build_embed(signal: dict, symbol: str, sl_percentage: float) -> Embed:
     return embed
 
 
-@bot.command(name="signal")
-async def signal(ctx, symbol: str = DEFAULT_SYMBOL, sl: float = DEFAULT_SL):
-    """Fetches a trading signal from the FastAPI backend and renders it."""
-    await ctx.trigger_typing()
+@bot.tree.command(name="position", description="Fetch a futures trading signal")
+@app_commands.describe(
+    symbol="Trading pair, e.g., ETH/USDT:USDT",
+    sl="Stop loss percent (e.g., 1.0 for 1%)",
+)
+async def position(interaction, symbol: str = DEFAULT_SYMBOL, sl: float = DEFAULT_SL):
+    await interaction.response.defer(thinking=True)
     url = f"{API_BASE}/signal"
     async with httpx.AsyncClient(timeout=60) as client:
         try:
             resp = await client.post(url, json={"symbol": symbol, "sl_percentage": sl})
             resp.raise_for_status()
         except Exception as exc:
-            await ctx.reply(f"Failed to fetch signal: {exc}")
+            await interaction.followup.send(f"Failed to fetch signal: {exc}")
             return
 
     data = resp.json()
     embed = build_embed(data, symbol=symbol, sl_percentage=sl)
-    await ctx.reply(embed=embed)
+    await interaction.followup.send(embed=embed)
 
 
 def main():
     if not BOT_TOKEN:
         raise SystemExit("DISCORD_BOT_TOKEN is not set in .env")
+    bot.tree.copy_global_to(guild=None)
+    # Global sync; if you want guild-only, set GUILD_ID env and use that instead.
+    @bot.event
+    async def on_ready():
+        await bot.tree.sync()
+        print(f"Logged in as {bot.user}")
     bot.run(BOT_TOKEN)
 
 
