@@ -86,12 +86,10 @@ async def position(interaction, symbol: str = DEFAULT_SYMBOL, sl: float = DEFAUL
 def main():
     if not BOT_TOKEN:
         raise SystemExit("DISCORD_BOT_TOKEN is not set in .env")
-    bot.tree.copy_global_to(guild=None)
-    # Global sync; if you want guild-only, set GUILD_ID env and use that instead.
     @bot.event
     async def on_ready():
-        await bot.tree.sync()
-        print(f"Logged in as {bot.user}")
+        synced = await bot.tree.sync()
+        print(f"Logged in as {bot.user} | Synced {len(synced)} commands")
     bot.run(BOT_TOKEN)
 
 
