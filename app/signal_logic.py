@@ -27,6 +27,7 @@ def compute_risk_reward(decision: Decision, entry: float, sl: float, tp: float) 
 
 def sanitize_signal_response(raw: Dict[str, Any]) -> Dict[str, Any]:
     """Validates and applies guardrails to the LLM output according to spec."""
+    confidence_threshold = 70.0
     decision = str(raw.get("decision", "")).upper()
     confidence = raw.get("confidence_score")
     entry = raw.get("entry_price")
@@ -46,7 +47,7 @@ def sanitize_signal_response(raw: Dict[str, Any]) -> Dict[str, Any]:
         confidence_val = float(confidence)
     except (TypeError, ValueError):
         confidence_val = 0.0
-    if confidence_val < 80:
+    if confidence_val < confidence_threshold:
         decision = "NEUTRAL"
 
     if decision != "NEUTRAL":

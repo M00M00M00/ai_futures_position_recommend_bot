@@ -22,7 +22,7 @@ def test_sanitize_valid_long_passes_through():
 def test_confidence_below_threshold_forces_neutral():
     raw = {
         "decision": "LONG",
-        "confidence_score": 50,
+        "confidence_score": 65,  # below threshold 70
         "entry_price": 100,
         "sl_price": 99,
         "tp_price": 103,
