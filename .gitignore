@@ -13,3 +13,4 @@ env/
 .DS_Store
 .vscode/
 .idea/
+prompt/system_prompt.txt

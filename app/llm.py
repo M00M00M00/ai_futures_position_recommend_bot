@@ -53,9 +53,17 @@ class LLMClient:
         return json.loads(content)
 
     def _build_system_prompt(self) -> str:
-        if not self.system_prompt:
-            raise RuntimeError("LLM_SYSTEM_PROMPT is not configured")
-        return self.system_prompt
+        if self.system_prompt and self.system_prompt.strip():
+            return self.system_prompt
+        if self.settings.llm_system_prompt_file:
+            try:
+                with open(self.settings.llm_system_prompt_file, "r", encoding="utf-8") as f:
+                    content = f.read().strip()
+                if content:
+                    return content
+            except FileNotFoundError:
+                raise RuntimeError(f"LLM system prompt file not found: {self.settings.llm_system_prompt_file}")
+        raise RuntimeError("LLM system prompt is not configured")
 
     def generate_signal(self, payload: Dict[str, Any]) -> Dict[str, Any]:
         """Calls the configured provider and returns sanitized, validated result."""
