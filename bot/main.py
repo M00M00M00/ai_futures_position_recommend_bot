@@ -28,6 +28,15 @@ def normalize_symbol(raw: str) -> str:
         base = symbol
     return f"{base}/{USDT_SUFFIX}:{USDT_SUFFIX}"
 
+
+def _truncate(text: str, max_len: int = 1024) -> str:
+    if text is None:
+        return "No reasoning provided."
+    text = str(text)
+    if len(text) <= max_len:
+        return text
+    return text[: max_len - 3] + "..."
+
 intents = Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -45,7 +54,7 @@ def build_embed(signal: dict, symbol: str, sl_percentage: float) -> Embed:
     tp_price = signal.get("tp_price")
     rr = signal.get("risk_reward_ratio")
     conf = signal.get("confidence_score")
-    reasoning = signal.get("reasoning") or "No reasoning provided."
+    reasoning = _truncate(signal.get("reasoning") or "No reasoning provided.", max_len=1024)
 
     sl_pct_display: Optional[float] = None
     tp_pct_display: Optional[float] = None

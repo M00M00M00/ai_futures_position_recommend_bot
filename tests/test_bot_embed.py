@@ -26,3 +26,19 @@ def test_normalize_symbol_adds_usdt_suffix():
     assert normalize_symbol("eth") == "ETH/USDT:USDT"
     assert normalize_symbol("BTC") == "BTC/USDT:USDT"
     assert normalize_symbol("ETH/USDT:USDT") == "ETH/USDT:USDT"
+
+
+def test_reasoning_truncated_to_discord_limit():
+    long_reasoning = "x" * 1500
+    signal = {
+        "decision": "LONG",
+        "confidence_score": 85.5,
+        "entry_price": 100.0,
+        "sl_price": 99.0,
+        "tp_price": 103.0,
+        "risk_reward_ratio": 3.0,
+        "reasoning": long_reasoning,
+    }
+    embed = build_embed(signal, symbol="ETH/USDT", sl_percentage=1.0)
+    analysis_field = [f for f in embed.fields if f.name == "Analysis"][0]
+    assert len(analysis_field.value) <= 1024
