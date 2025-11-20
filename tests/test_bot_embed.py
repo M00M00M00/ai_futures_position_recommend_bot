@@ -1,4 +1,5 @@
 from bot.main import build_embed
+from bot.main import normalize_symbol
 
 
 def test_build_embed_formats_fields():
@@ -19,3 +20,9 @@ def test_build_embed_formats_fields():
     assert "R:R" in field_names
     assert "Stop Loss" in field_names
     assert "Take Profit" in field_names
+
+
+def test_normalize_symbol_adds_usdt_suffix():
+    assert normalize_symbol("eth") == "ETH/USDT:USDT"
+    assert normalize_symbol("BTC") == "BTC/USDT:USDT"
+    assert normalize_symbol("ETH/USDT:USDT") == "ETH/USDT:USDT"

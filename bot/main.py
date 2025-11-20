@@ -13,6 +13,19 @@ BOT_TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 API_BASE = os.getenv("API_BASE_URL", "http://localhost:8000")
 DEFAULT_SYMBOL = os.getenv("BYBIT_TEST_SYMBOL", "ETH/USDT:USDT")
 DEFAULT_SL = float(os.getenv("DEFAULT_SL_PCT", "1.0"))
+USDT_SUFFIX = os.getenv("PERP_SUFFIX", "USDT")
+
+
+def normalize_symbol(raw: str) -> str:
+    symbol = raw.upper().replace(" ", "")
+    if "/" in symbol:
+        return symbol
+    # e.g., "ETH" -> "ETH/USDT:USDT" or "ETHUSDT" -> "ETH/USDT"
+    if symbol.endswith(USDT_SUFFIX):
+        base = symbol[: -len(USDT_SUFFIX)]
+    else:
+        base = symbol
+    return f"{base}/{USDT_SUFFIX}:{USDT_SUFFIX}"
 
 intents = Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
@@ -69,17 +82,18 @@ def build_embed(signal: dict, symbol: str, sl_percentage: float) -> Embed:
 )
 async def position(interaction, symbol: str = DEFAULT_SYMBOL, sl: float = DEFAULT_SL):
     await interaction.response.defer(thinking=True)
+    normalized_symbol = normalize_symbol(symbol)
     url = f"{API_BASE}/signal"
     async with httpx.AsyncClient(timeout=60) as client:
         try:
-            resp = await client.post(url, json={"symbol": symbol, "sl_percentage": sl})
+            resp = await client.post(url, json={"symbol": normalized_symbol, "sl_percentage": sl})
             resp.raise_for_status()
         except Exception as exc:
             await interaction.followup.send(f"Failed to fetch signal: {exc}")
             return
 
     data = resp.json()
-    embed = build_embed(data, symbol=symbol, sl_percentage=sl)
+    embed = build_embed(data, symbol=normalized_symbol, sl_percentage=sl)
     await interaction.followup.send(embed=embed)
 
 
