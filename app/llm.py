@@ -65,7 +65,7 @@ class LLMClient:
                 raise RuntimeError(f"LLM system prompt file not found: {self.settings.llm_system_prompt_file}")
         raise RuntimeError("LLM system prompt is not configured")
 
-    def generate_signal(self, payload: Dict[str, Any]) -> Dict[str, Any]:
+    def generate_signal(self, payload: Dict[str, Any], user_sl_pct: float) -> Dict[str, Any]:
         """Calls the configured provider and returns sanitized, validated result."""
         if self.provider == "openai":
             raw = self._openai_generate(payload)
@@ -75,7 +75,14 @@ class LLMClient:
             raise ValueError(f"Unsupported llm_provider: {self.provider}")
 
         raw["confidence_threshold"] = self.confidence_threshold
-        return sanitize_signal_response(raw)
+        return sanitize_signal_response(
+            raw,
+            user_sl_pct=user_sl_pct,
+            min_sl_factor=self.settings.min_sl_adjustment_factor,
+            max_sl_factor=self.settings.max_sl_adjustment_factor,
+            min_position_size_pct=self.settings.min_position_size_pct,
+            max_position_size_pct=self.settings.max_position_size_pct,
+        )
 
     def set_model(self, model_name: str) -> None:
         self.model = model_name

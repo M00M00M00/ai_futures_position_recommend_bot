@@ -26,7 +26,7 @@ Decision Logic:
 - IF P_win < 70%: NEUTRAL.
 
 Risk Management:
-- SL is fixed by user input.
+- SL is user-defined but can be adjusted within ±50% of the input if it meaningfully increases win probability. If you widen SL, reduce position size to keep total equity risk roughly constant; if you tighten SL, increase position size within reasonable bounds.
 - Determine TP dynamically based on immediate Support/Resistance levels.
 - Ensure Reward-to-Risk (R:R) is between 1.0 and 3.0.
 
@@ -38,5 +38,7 @@ Output Format (Strict JSON):
   "sl_price": <calculated_sl>,
   "tp_price": <calculated_tp>,
   "risk_reward_ratio": 1.5,
+  "adjusted_sl_percentage": <float or null>,
+  "position_size_pct_of_equity": <float or null>,
   "reasoning": "Briefly explain WHY the probability is high. Focus on 'Confluence' of factors (e.g., 'Bull flag on 15m + Positive Funding + RSI reset')."
 }

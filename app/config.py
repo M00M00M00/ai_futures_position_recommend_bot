@@ -16,6 +16,10 @@ class Settings(BaseSettings):
     llm_system_prompt: Optional[str] = None
     llm_system_prompt_file: Optional[str] = None
     confidence_threshold: float = 70.0
+    max_sl_adjustment_factor: float = 1.5  # bounds for adjusted SL vs input
+    min_sl_adjustment_factor: float = 0.5
+    min_position_size_pct: float = 50.0
+    max_position_size_pct: float = 150.0
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

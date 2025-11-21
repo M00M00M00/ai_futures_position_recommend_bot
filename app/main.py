@@ -54,6 +54,8 @@ class SignalResponse(BaseModel):
     tp_price: Optional[float] = None
     risk_reward_ratio: Optional[float] = None
     reasoning: Optional[str] = None
+    adjusted_sl_percentage: Optional[float] = None
+    position_size_pct_of_equity: Optional[float] = None
     violations: list[str] = Field(default_factory=list)
     timeframes: dict
     order_book: dict
@@ -95,7 +97,7 @@ def generate_signal(
             pass
 
     try:
-        sanitized = llm.generate_signal(llm_input)
+        sanitized = llm.generate_signal(llm_input, user_sl_pct=body.sl_percentage)
     except Exception as exc:
         raise HTTPException(status_code=502, detail=f"LLM generation failed: {exc}")
 

@@ -63,7 +63,7 @@ class FakeLLM:
     def set_model(self, model_name: str):
         self.model = model_name
 
-    def generate_signal(self, payload):
+    def generate_signal(self, payload, user_sl_pct: float):
         return {
             "decision": "LONG",
             "confidence_score": 90,
@@ -71,6 +71,7 @@ class FakeLLM:
             "sl_price": payload["timeframes"]["15m"]["ohlcv"][-1]["close"] - 1.0,
             "tp_price": payload["timeframes"]["15m"]["ohlcv"][-1]["close"] + 3.0,
             "risk_reward_ratio": 3.0,
+            "adjusted_sl_percentage": user_sl_pct * 1.2,
             "reasoning": "test llm output",
             "violations": [],
         }

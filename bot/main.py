@@ -37,6 +37,14 @@ def _truncate(text: str, max_len: int = 1024) -> str:
         return text
     return text[: max_len - 3] + "..."
 
+
+def chunk_text(text: str, chunk_size: int = 1000) -> list[str]:
+    text = text or "No reasoning provided."
+    chunks = []
+    for i in range(0, len(text), chunk_size):
+        chunks.append(text[i : i + chunk_size])
+    return chunks or ["No reasoning provided."]
+
 intents = Intents.default()
 bot = commands.Bot(command_prefix="!", intents=intents)
 
@@ -54,7 +62,7 @@ def build_embed(signal: dict, symbol: str, sl_percentage: float) -> Embed:
     tp_price = signal.get("tp_price")
     rr = signal.get("risk_reward_ratio")
     conf = signal.get("confidence_score")
-    reasoning = _truncate(signal.get("reasoning") or "No reasoning provided.", max_len=1024)
+    reasoning_chunks = chunk_text(signal.get("reasoning") or "No reasoning provided.", chunk_size=1000)
 
     sl_pct_display: Optional[float] = None
     tp_pct_display: Optional[float] = None
@@ -80,7 +88,22 @@ def build_embed(signal: dict, symbol: str, sl_percentage: float) -> Embed:
         inline=True,
     )
 
-    embed.add_field(name="Analysis", value=reasoning, inline=False)
+    adj_sl_pct = signal.get("adjusted_sl_percentage")
+    pos_size_pct = signal.get("position_size_pct_of_equity")
+    embed.add_field(
+        name="Adjusted SL %",
+        value=f"{adj_sl_pct:.2f}%" if adj_sl_pct is not None else "N/A",
+        inline=True,
+    )
+    embed.add_field(
+        name="Position Size",
+        value=f"{pos_size_pct:.0f}% equity" if pos_size_pct is not None else "N/A",
+        inline=True,
+    )
+
+    for idx, chunk in enumerate(reasoning_chunks):
+        title = "Analysis" if idx == 0 else f"Analysis (cont. {idx})"
+        embed.add_field(name=title, value=chunk, inline=False)
     embed.set_footer(text="This is not financial advice. Trade at your own risk.")
     return embed
 

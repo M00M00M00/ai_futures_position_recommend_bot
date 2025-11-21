@@ -18,8 +18,8 @@ High-confidence trading signal system for USDT perpetuals. The stack combines Fa
 ## Overview
 - Purpose: Generate disciplined LONG/SHORT/NEUTRAL calls only when probability is high.
 - Inputs: 15m and 1h OHLCV, SMA(7/25/99), RSI14, Bollinger (20, 2), MACD, order book imbalance (±0.5%), funding rate, and open interest change.
-- Outputs: LLM-enforced JSON with decision, confidence, entry/SL/TP, and R:R, rendered to Discord embeds.
-- Guardrails: Confidence threshold, SL/TP ordering, and R:R between 1 and 3; otherwise NEUTRAL.
+- Outputs: LLM-enforced JSON with decision, confidence, entry/SL/TP, R:R, adjusted SL%, and position sizing guidance, rendered to Discord embeds.
+- Guardrails: Confidence threshold, SL/TP ordering, R:R between 1 and 3, SL adjustment bounds, and size clamps; otherwise NEUTRAL.
 
 ## Architecture
 1) Discord Bot: Slash command `/position` forwards the request. Users provide a coin ticker (e.g., `eth`, `btc`) and optional SL%/LLM model choice.
@@ -70,6 +70,9 @@ Key variables:
 - `LLM_MODEL_NAME` (default `gpt-5-mini`), `LLM_PROVIDER` (`openai` or `anthropic`)
 - `LLM_SYSTEM_PROMPT_FILE` (default `prompt/system_prompt.txt`)
 - `CONFIDENCE_THRESHOLD` (default 70)
+- SL adjustment and sizing bounds (configurable):
+  - `min_sl_adjustment_factor` (default 0.5), `max_sl_adjustment_factor` (default 1.5)
+  - `min_position_size_pct` (default 50), `max_position_size_pct` (default 150)
 - `BYBIT_TEST_SYMBOL` (default `ETH/USDT:USDT`)
 - `DEFAULT_SL_PCT` (default `1.0`)
 - `PERP_SUFFIX` (default `USDT` for symbol normalization)

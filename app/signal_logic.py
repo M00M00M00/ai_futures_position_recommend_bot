@@ -25,7 +25,15 @@ def compute_risk_reward(decision: Decision, entry: float, sl: float, tp: float) 
     return reward / risk
 
 
-def sanitize_signal_response(raw: Dict[str, Any]) -> Dict[str, Any]:
+def sanitize_signal_response(
+    raw: Dict[str, Any],
+    user_sl_pct: float,
+    *,
+    min_sl_factor: float = 0.5,
+    max_sl_factor: float = 1.5,
+    min_position_size_pct: float = 50.0,
+    max_position_size_pct: float = 150.0,
+) -> Dict[str, Any]:
     """Validates and applies guardrails to the LLM output according to spec."""
     confidence_threshold = raw.get("confidence_threshold", 70.0)
     decision = str(raw.get("decision", "")).upper()
@@ -35,6 +43,7 @@ def sanitize_signal_response(raw: Dict[str, Any]) -> Dict[str, Any]:
     tp = raw.get("tp_price")
     rr = raw.get("risk_reward_ratio")
     reasoning = raw.get("reasoning")
+    sl_adj_pct_raw = raw.get("adjusted_sl_percentage")
 
     violations = []
 
@@ -85,6 +94,25 @@ def sanitize_signal_response(raw: Dict[str, Any]) -> Dict[str, Any]:
     else:
         rr = None
 
+    # SL adjustment and position sizing to maintain similar equity risk
+    base_sl_pct = max(user_sl_pct, 0.01)
+    try:
+        sl_adj_pct_candidate = float(sl_adj_pct_raw) if sl_adj_pct_raw is not None else base_sl_pct
+    except (TypeError, ValueError):
+        sl_adj_pct_candidate = base_sl_pct
+
+    lower_bound = base_sl_pct * min_sl_factor
+    upper_bound = base_sl_pct * max_sl_factor
+    adjusted_sl_pct = min(max(sl_adj_pct_candidate, lower_bound), upper_bound)
+
+    position_size_pct = None
+    if decision != "NEUTRAL":
+        position_size_pct = (base_sl_pct / adjusted_sl_pct) * 100.0
+        position_size_pct = min(max(position_size_pct, min_position_size_pct), max_position_size_pct)
+    else:
+        adjusted_sl_pct = None
+        position_size_pct = None
+
     sanitized = {
         "decision": decision,
         "confidence_score": confidence_val,
@@ -93,6 +121,8 @@ def sanitize_signal_response(raw: Dict[str, Any]) -> Dict[str, Any]:
         "tp_price": tp if decision != "NEUTRAL" else None,
         "risk_reward_ratio": rr,
         "reasoning": reasoning,
+        "adjusted_sl_percentage": adjusted_sl_pct,
+        "position_size_pct_of_equity": position_size_pct,
         "violations": violations,
     }
     return sanitized
