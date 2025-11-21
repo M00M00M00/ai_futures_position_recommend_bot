@@ -40,5 +40,5 @@ def test_reasoning_truncated_to_discord_limit():
         "reasoning": long_reasoning,
     }
     embed = build_embed(signal, symbol="ETH/USDT", sl_percentage=1.0)
-    analysis_field = [f for f in embed.fields if f.name == "Analysis"][0]
-    assert len(analysis_field.value) <= 1024
+    assert embed.description
+    assert len(embed.description) <= 4000
