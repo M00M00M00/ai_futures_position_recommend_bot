@@ -79,6 +79,9 @@ Key variables:
 
 System prompt: edit `prompt/system_prompt.txt` to adjust persona/logic without code changes.
 
+Notes:
+- Prompt allows tight-stop asymmetric plays (e.g., ~0.3% SL with higher TP) when EV and confluence justify; guardrails cap extremes (R:R 1–10) and adjust position size to control equity risk.
+
 ## Running Locally
 FastAPI:
 ```bash
