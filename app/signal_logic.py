@@ -85,7 +85,7 @@ def sanitize_signal_response(
                     violations.append("rr_calc")
                     decision = "NEUTRAL"
                 else:
-                    if rr_final < 1 or rr_final > 3:
+                    if rr_final < 1 or rr_final > 10:
                         violations.append("rr_range")
                         decision = "NEUTRAL"
                 rr = rr_final

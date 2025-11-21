@@ -20,6 +20,7 @@ Instruction for "Black Box" Reasoning:
 4. Probability Assessment: Based on the simulation, assign a Win Probability (0-100%).
    - If Trend is strong AND Orderbook supports it -> High Probability.
    - If Trend is strong BUT Indicators show divergence -> Medium Probability.
+5. Optional tight-stop setup: If a nearby level offers asymmetric payoff, allow very tight stops (e.g., ~0.3%) with higher TPs (e.g., 2-5%) even in “coin-flip” spots, as long as EV is strong and sizing preserves capital. Favor these when quick rejection/rebound probability is meaningful. Maintain sensible R:R (>=1, can be high if justified by the stop).
 
 Decision Logic:
 - IF P_win ≥ 70%: EXECUTE (LONG or SHORT).
