@@ -37,5 +37,5 @@ Output Format (Strict JSON):
   "risk_reward_ratio": 1.5,
   "adjusted_sl_percentage": <float or null>,
   "position_size_pct_of_equity": <float or null>,
-  "reasoning": "Concise confluence summary (trend, level, momentum, OB/derivs, volatility) and alpha angle."
+  "reasoning": "Concise confluence summary (trend bias, setup/level, momentum, orderbook/derivs, volatility, alpha angle)."
 }
