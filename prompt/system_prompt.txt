@@ -37,5 +37,5 @@ Output Format (Strict JSON):
   "risk_reward_ratio": 1.5,
   "adjusted_sl_percentage": <float or null>,
   "position_size_pct_of_equity": <float or null>,
-  "reasoning": "Briefly explain WHY the probability is high. Focus on 'Confluence' of factors (e.g., 'Bull flag on 15m + Positive Funding + RSI reset')."
+  "reasoning": "Concise confluence summary (trend, level, momentum, OB/derivs, volatility) and alpha angle."
 }
