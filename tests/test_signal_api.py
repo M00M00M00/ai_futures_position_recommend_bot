@@ -27,7 +27,7 @@ class FakeExchange:
                 100 + idx,
                 200.0,
             ]
-            for idx in range(130)
+            for idx in range(180)
         ]
         self.order_book = {
             "bids": [[129.6, 10.0], [129.0, 5.0]],
@@ -90,7 +90,8 @@ def test_signal_endpoint_with_fakes():
     assert body["risk_reward_ratio"] == 3.0
     assert "15m" in body["timeframes"]
     assert len(body["timeframes"]["15m"]["ohlcv"]) == 50
-    assert body["order_book"]["bid_volume"] > 0
+    assert body["order_book"]["windows"]["0.5"]["bid_volume"] > 0
+    assert "market_context" in body
     assert body["derivatives"]["funding_rate"] == 0.0001
 
     app.dependency_overrides = {}

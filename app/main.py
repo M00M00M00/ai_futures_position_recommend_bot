@@ -60,6 +60,7 @@ class SignalResponse(BaseModel):
     timeframes: dict
     order_book: dict
     derivatives: dict
+    market_context: dict
 
     @field_validator("decision")
     @classmethod
@@ -88,6 +89,7 @@ def generate_signal(
         "timeframes": market_data["timeframes"],
         "order_book": market_data["order_book"],
         "derivatives": market_data["derivatives"],
+        "market_context": market_data.get("market_context", {}),
     }
 
     if body.llm_model_name:
@@ -113,4 +115,5 @@ def generate_signal(
         timeframes=market_data["timeframes"],
         order_book=market_data["order_book"],
         derivatives=market_data["derivatives"],
+        market_context=market_data.get("market_context", {}),
     )

@@ -24,9 +24,10 @@ High-confidence trading signal system for USDT perpetuals. The stack combines Fa
 ## Architecture
 1) Discord Bot: Slash command `/position` forwards the request. Users provide a coin ticker (e.g., `eth`, `btc`) and optional SL%/LLM model choice.
 2) FastAPI Backend:
-   - Fetches live Bybit data via CCXT.
+   - Fetches live Bybit data via CCXT (15m 50-candle view, 1h 20-candle view with deeper history for indicators).
    - Computes indicators with pandas/pandas-ta.
    - Builds LLM payload and calls OpenAI/Anthropic with a strict JSON schema.
+   - Adds market_context (price vs 1h SMA99, volatility state) and richer orderbook windows (±0.5%, ±1.0% with imbalance ratio).
    - Sanitizes/validates the response before returning.
 3) LLM Prompt: Stored in `prompt/system_prompt.txt`; can be changed via `.env` or file path.
 4) Persistence: Stateless; uses environment variables for secrets and configuration.

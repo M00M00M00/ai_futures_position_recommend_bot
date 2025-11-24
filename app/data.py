@@ -22,7 +22,7 @@ class TimeframeConfig:
 TIMEFRAME_CONFIG: dict[TimeframeKey, TimeframeConfig] = {
     # Fetch more than we expose so long lookbacks (e.g., SMA99) remain valid.
     "15m": TimeframeConfig(fetch_limit=130, expose_limit=50),
-    "1h": TimeframeConfig(fetch_limit=130, expose_limit=20),
+    "1h": TimeframeConfig(fetch_limit=180, expose_limit=20),
 }
 
 
@@ -114,7 +114,22 @@ def aggregate_order_book(order_book: Dict[str, List[List[float]]], mid_price: fl
     bid_volume = sum(amount for price, amount in order_book.get("bids", []) if price >= lower)
     ask_volume = sum(amount for price, amount in order_book.get("asks", []) if price <= upper)
 
-    return {"bid_volume": bid_volume, "ask_volume": ask_volume, "window_pct": window_pct}
+    imbalance_ratio = None
+    if ask_volume:
+        imbalance_ratio = bid_volume / ask_volume
+    elif bid_volume:
+        imbalance_ratio = float("inf")
+
+    return {"bid_volume": bid_volume, "ask_volume": ask_volume, "window_pct": window_pct, "imbalance_ratio": imbalance_ratio}
+
+
+def _first_column_with_prefix(frame: Optional[pd.DataFrame], prefix: str) -> Optional[str]:
+    if frame is None:
+        return None
+    for col in frame.columns:
+        if col.startswith(prefix):
+            return col
+    return None
 
 
 def _extract_open_interest_value(point: Dict[str, Any]) -> Optional[float]:
@@ -159,8 +174,48 @@ def fetch_market_data(exchange: Any, symbol: str, sl_percentage: float) -> Dict[
     # use the most recent 15m close as mid-price for depth aggregation
     reference_close = timeframe_payload["15m"]["ohlcv"][-1]["close"]
     order_book = exchange.fetch_order_book(symbol)
-    depth = aggregate_order_book(order_book, reference_close)
+    depth = {
+        "windows": {
+            "0.5": aggregate_order_book(order_book, reference_close, window_pct=0.5),
+            "1.0": aggregate_order_book(order_book, reference_close, window_pct=1.0),
+        }
+    }
     derivatives = fetch_derivatives(exchange, symbol)
+
+    # market context to reduce LLM load on simple classifications
+    market_context: Dict[str, Any] = {}
+    close_1h = timeframe_payload["1h"]["ohlcv"][-1]["close"]
+    sma99_1h = timeframe_payload["1h"]["indicators"]["sma"]["99"]
+    if sma99_1h is not None:
+        if close_1h > sma99_1h:
+            market_context["current_price_vs_sma99_1h"] = "ABOVE"
+        elif close_1h < sma99_1h:
+            market_context["current_price_vs_sma99_1h"] = "BELOW"
+        else:
+            market_context["current_price_vs_sma99_1h"] = "NEAR"
+
+    bb_1h = timeframe_payload["1h"]["indicators"]["bollinger_bands"]
+    if bb_1h["upper"] is not None and bb_1h["lower"] is not None:
+        # compute simple volatility state using BB width vs rolling median width on 1h
+        raw = exchange.fetch_ohlcv(symbol, timeframe="1h", limit=min(TIMEFRAME_CONFIG["1h"].fetch_limit, 180))
+        df = ohlcv_to_dataframe(raw)
+        closes = df["close"]
+        bbands_full = ta.bbands(closes, length=20, std=2)
+        if bbands_full is not None:
+            upper_col = _first_column_with_prefix(bbands_full, "BBU_")
+            lower_col = _first_column_with_prefix(bbands_full, "BBL_")
+            if upper_col and lower_col:
+                widths = bbands_full[upper_col] - bbands_full[lower_col]
+                if len(widths.dropna()) >= 20:
+                    last_width = widths.iloc[-1]
+                    median_width = widths.dropna().rolling(20).median().iloc[-1]
+                    if median_width and last_width:
+                        if last_width > median_width * 1.1:
+                            market_context["volatility_state"] = "EXPANSION"
+                        elif last_width < median_width * 0.9:
+                            market_context["volatility_state"] = "SQUEEZE"
+                        else:
+                            market_context["volatility_state"] = "NEUTRAL"
 
     return {
         "symbol": symbol,
@@ -168,4 +223,5 @@ def fetch_market_data(exchange: Any, symbol: str, sl_percentage: float) -> Dict[
         "timeframes": timeframe_payload,
         "order_book": depth,
         "derivatives": derivatives,
+        "market_context": market_context,
     }

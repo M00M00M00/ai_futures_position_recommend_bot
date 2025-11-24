@@ -48,7 +48,7 @@ class FakeExchange:
             ]
             for idx in range(130)
         ]
-        # 1h series 130 points; 100..229 prices
+        # 1h series 180 points; 100..279 prices
         self.ohlcv_1h = [
             [
                 (base_ts + pd.Timedelta(hours=idx)).value // 10**6,
@@ -58,7 +58,7 @@ class FakeExchange:
                 100 + idx,
                 200.0,
             ]
-            for idx in range(130)
+            for idx in range(180)
         ]
 
         self.order_book = {
@@ -104,11 +104,14 @@ def test_fetch_market_data_shapes_clusters_and_calculates_depth_and_derivatives(
 
     tf1h = result["timeframes"]["1h"]
     assert len(tf1h["ohlcv"]) == 20
-    assert tf1h["ohlcv"][-1]["close"] == 229.0
+    assert tf1h["ohlcv"][-1]["close"] == 279.0
+    assert tf1h["indicators"]["sma"]["99"] == pytest.approx(230.0)
 
-    depth = result["order_book"]
-    assert depth["bid_volume"] == 10.0  # only 129.6 within 0.5% window of 130
-    assert depth["ask_volume"] == 12.0  # only 130.4 within window
+    depth = result["order_book"]["windows"]
+    assert depth["0.5"]["bid_volume"] == 10.0  # only 129.6 within 0.5% window of 130
+    assert depth["0.5"]["ask_volume"] == 12.0  # only 130.4 within window
+    assert depth["1.0"]["bid_volume"] >= depth["0.5"]["bid_volume"]
+    assert depth["1.0"]["ask_volume"] >= depth["0.5"]["ask_volume"]
 
     derivatives = result["derivatives"]
     assert derivatives["funding_rate"] == exchange.funding_rate
