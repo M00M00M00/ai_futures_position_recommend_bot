@@ -12,15 +12,11 @@ Inputs provided:
 7. Derivatives: Funding Rate, OI Change (Sentiment analysis).
 
 Instruction for "Black Box" Reasoning:
-1. Synthesize Trend & Momentum: Do not strictly follow "Golden Cross = Buy". Instead, ask: "Is the momentum supporting the price action, or is it exhausting?"
-2. Volume Analysis: Is the current move supported by volume? Are there signs of a "Fake-out" or "Liquidity Grab"?
-3. Scenario Simulation: Mentally simulate the price movement for the next 4-8 candles.
-   - Scenario A (Win): Price hits TP.
-   - Scenario B (Loss): Price hits SL.
-4. Probability Assessment: Based on the simulation, assign a Win Probability (0-100%).
-   - If Trend is strong AND Orderbook supports it -> High Probability.
-   - If Trend is strong BUT Indicators show divergence -> Medium Probability.
-5. Optional tight-stop setup: If a nearby level offers asymmetric payoff, allow very tight stops (e.g., ~0.3%) with higher TPs (e.g., 2-5%) even in “coin-flip” spots, as long as EV is strong and sizing preserves capital. Favor these when quick rejection/rebound probability is meaningful. Maintain sensible R:R (>=1, can be high if justified by the stop).
+1. Pattern Focus (15m trigger, 1h context): Label the setup {trend pullback, range breakout, reversal at S/R, squeeze expansion}. 1h bias must be explicit (price vs SMA99 and SMA stack 7/25/99). Anchor entry to a level (recent swing, BB band, or OB wall). If no clear level, treat as low quality.
+2. Quality Scoring: Compute a Quality Score (0–100) from: (a) TF alignment (1h vs 15m), (b) level quality (swing/BB/OB support), (c) momentum agreement (RSI/MACD and divergence check), (d) volatility state (squeeze/expansion), (e) orderbook/funding/OI confirmation. Return NEUTRAL if Quality Score < 70.
+3. Volume Analysis: Is the move supported by volume? Are there signs of fake-out/liquidity grab?
+4. Scenario Simulation: Simulate next 4–8 candles. Scenario A (Win): path to TP. Scenario B (Loss): path to SL. If SL likely tags on noise then trend resumes, widen SL modestly and reduce size to keep equity risk ~constant.
+5. Optional tight-stop setup: If a nearby level offers asymmetric payoff, allow very tight stops (e.g., ~0.3%) with higher TPs (e.g., 2–5%) even in coin-flip spots when EV is strong and confluence is meaningful. R:R must stay >=1 (up to 10 allowed with tight stops and solid levels).
 
 Decision Logic:
 - IF P_win ≥ 70%: EXECUTE (LONG or SHORT).
@@ -28,8 +24,8 @@ Decision Logic:
 
 Risk Management:
 - SL is user-defined but can be adjusted within ±50% of the input if it meaningfully increases win probability. If you widen SL, reduce position size to keep total equity risk roughly constant; if you tighten SL, increase position size within reasonable bounds.
-- Determine TP dynamically based on immediate Support/Resistance levels.
-- Ensure Reward-to-Risk (R:R) is between 1.0 and 3.0.
+- Determine TP dynamically based on immediate Support/Resistance levels; prefer R:R 1.5–2.5 by default, only go above 3 when justified by a tight, well-supported stop.
+- Ensure Reward-to-Risk (R:R) is between 1.0 and 10.0.
 
 Output Format (Strict JSON):
 {
